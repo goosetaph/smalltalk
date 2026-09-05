@@ -1,66 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SmallTalk
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+SmallTalk is a minimal Twitter/X-style microblog built with Laravel 11 and Laravel Breeze. Registered users can post short messages ("tweets"), comment on each other's posts, and edit or delete their own content. It is a small learning/portfolio project: the goal is a clean, idiomatic Laravel CRUD app with proper ownership-based authorization and feature tests, rather than a feature-complete social network.
 
-## About Laravel
+## Tech stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP 8.2+** / **Laravel 11** (slim skeleton — no `app/Http/Kernel.php`, middleware configured in `bootstrap/app.php`)
+- **Laravel Breeze** (Blade + Alpine.js starter kit) for authentication scaffolding
+- **Blade** templates
+- **Tailwind CSS** + **daisyUI** for styling
+- **Alpine.js** for small bits of interactivity
+- **Vite** for asset bundling
+- **MySQL** (default) or **SQLite**
+- **PHPUnit** for feature tests
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Authentication (via Breeze)**
+- Registration and login
+- Email verification
+- Password reset / forgot password
+- Password confirmation
+- Profile management (update name & email, change password, delete account)
 
-## Learning Laravel
+**Tweets**
+- Post a tweet from the dashboard (max 255 characters)
+- Dashboard feed showing all tweets, newest first
+- Edit and delete your own tweets
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**Comments**
+- Comment on any tweet (max 2000 characters)
+- Edit and delete your own comments
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Authorization**
+- `TweetPolicy` and `CommentPolicy` enforce that only the author of a tweet or comment can edit or delete it
+- Controllers call `authorize()`, so a non-owner gets a **403** even if they craft the request by hand
+- Blade views additionally hide Edit/Delete buttons for content you don't own (`@can` directives)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Getting started
 
-## Laravel Sponsors
+### Requirements
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP 8.2 or newer
+- Composer
+- Node.js 18+ and npm
+- MySQL 8 (or SQLite, see below)
 
-### Premium Partners
+### Installation
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+# 1. Clone the repository
+git clone https://github.com/goosetaph/smalltalk.git
+cd smalltalk
 
-## Contributing
+# 2. Install PHP and JS dependencies
+composer install
+npm install
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 3. Create your environment file
+cp .env.example .env        # on Windows: copy .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+### Configure the database
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Option A — MySQL** (the default in `.env.example`). Create an empty database, then set:
 
-## Security Vulnerabilities
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=smalltalk
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Option B — SQLite** (zero setup). Create the database file and point `.env` at it:
+
+```bash
+touch database/database.sqlite   # on Windows: type nul > database\database.sqlite
+```
+
+```env
+DB_CONNECTION=sqlite
+# and remove or comment out the DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD lines
+```
+
+### Migrate and run
+
+```bash
+# Create the tables (and a Test User: test@example.com / password)
+php artisan migrate --seed
+
+# Build the frontend assets...
+npm run build
+# ...or run the Vite dev server in a separate terminal while developing
+npm run dev
+
+# Serve the app at http://localhost:8000
+php artisan serve
+```
+
+Mail is configured to the `log` driver by default, so verification and password-reset emails are written to `storage/logs/laravel.log` instead of being sent.
+
+### Running the tests
+
+```bash
+php artisan test
+```
+
+The suite covers Breeze's auth flows plus tweet/comment creation, editing, deletion, validation, and the ownership rules (including that a non-owner receives a 403).
+
+## Known limitations / possible next steps
+
+This is a learning project, and there is plenty it deliberately does not do:
+
+- **No rate limiting** on posting tweets or comments — nothing stops a user from spamming the feed.
+- **Tweet content is capped at 255 characters** because the column is a `varchar(255)`; a `text` column would be the more natural choice.
+- **No pagination** — the dashboard loads every tweet in the database in one query.
+- **No image or media uploads**, no link previews, no emoji picker.
+- **No likes, follows, retweets, hashtags, mentions, or notifications** — the feed is a flat, chronological list of everyone's posts.
+- **No search** and no user profile pages showing a single user's tweets.
+- **No soft deletes** — deleting a tweet permanently removes it, and its comments are left orphaned rather than cascade-deleted.
+- **Tests cover the happy paths and the authorization rules**, not exhaustive edge cases; there is no browser/end-to-end testing.
+- **No CI pipeline** and no deployment configuration.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Released under the [MIT License](https://opensource.org/licenses/MIT), the same license as the Laravel framework it is built on.

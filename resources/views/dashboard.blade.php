@@ -6,7 +6,7 @@
                 <div class="p-6 text-white-900">
                     <form action="{{ route('tweet.store') }}" class="form-control" method="post">
                         @csrf
-                        <textarea name="content" cols="30" rows="3" class="textarea textarea-bordered mb-2 @error('content') textarea-error @enderror" placeholder="Write some text..."></textarea>
+                        <textarea name="content" cols="30" rows="3" class="textarea textarea-bordered mb-2 @error('content') textarea-error @enderror" placeholder="Write some text...">{{ old('content') }}</textarea>
                         @error('content')
                             <span class="text-error">{{ $message }}</span>
                         @enderror
@@ -22,13 +22,17 @@
                             <p>{{ $tweet->content }}</p>
                         </div>
                         <div class="card-actions p-2">
-                        <a href="{{ route('tweet.show', $tweet) }}" class="btn btn-info btn-sm">Comment</a>
-                            <a class="btn btn-warning btn-sm" href="{{ route('tweet.edit', $tweet->id) }}">Edit</a>
-                            <form action="{{ route('tweet.destroy', $tweet->id) }}" method="post">
-                                @csrf
-                                @method('DELETE')
-                                <input type="submit" class="btn btn-sm btn-error" value="Delete">
-                            </form>
+                            <a href="{{ route('tweet.show', $tweet) }}" class="btn btn-info btn-sm">Comment</a>
+                            @can('update', $tweet)
+                                <a class="btn btn-warning btn-sm" href="{{ route('tweet.edit', $tweet->id) }}">Edit</a>
+                            @endcan
+                            @can('delete', $tweet)
+                                <form action="{{ route('tweet.destroy', $tweet->id) }}" method="post">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="submit" class="btn btn-sm btn-error" value="Delete">
+                                </form>
+                            @endcan
                         </div>
                     </div>
                 @endforeach

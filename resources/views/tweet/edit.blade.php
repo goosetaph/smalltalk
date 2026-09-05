@@ -5,10 +5,10 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
-                    <textarea name="content" cols="30" rows="3" class="textarea textarea-bordered w-full @error('content') textarea-error @enderror">{{ $tweet->content }}</textarea>
+                    <textarea name="content" cols="30" rows="3" class="textarea textarea-bordered w-full @error('content') textarea-error @enderror">{{ old('content', $tweet->content) }}</textarea>
                 @error('content')
                     <span class="text-error">{{ $message }}</span>
-                @enderror           
+                @enderror
                 </div>
                 <div>
                     <input type="submit" value="Edit" class="btn btn-secondary">

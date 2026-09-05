@@ -1,25 +1,26 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Tweet;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class TweetController extends Controller
 {
-    use ValidatesRequests;
+    use AuthorizesRequests;
 
     public function index()
     {
         return view('dashboard', [
-            'tweets' => Tweet::latest()->get(),
+            'tweets' => Tweet::latest()->with('user')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'content' => ['required'],
+        $request->validate([
+            'content' => ['required', 'string', 'max:255'],
         ]);
 
         Tweet::create([
@@ -32,22 +33,26 @@ class TweetController extends Controller
         return redirect()->route('dashboard');
     }
 
-    public function show($tweet)
+    public function show(Tweet $tweet)
     {
-        return view('tweet.show', [
-            'tweet' => Tweet::find($tweet)
-        ]);
+        $tweet->load(['user', 'comments.user']);
+
+        return view('tweet.show', compact('tweet'));
     }
 
     public function edit(Tweet $tweet)
     {
+        $this->authorize('update', $tweet);
+
         return view('tweet.edit', compact('tweet'));
     }
 
     public function update(Request $request, Tweet $tweet)
     {
-        $this->validate($request, [
-            'content' => ['required'],
+        $this->authorize('update', $tweet);
+
+        $request->validate([
+            'content' => ['required', 'string', 'max:255'],
         ]);
 
         $tweet->update([
@@ -59,9 +64,9 @@ class TweetController extends Controller
         return redirect()->route('dashboard');
     }
 
-    public function destroy($id)
+    public function destroy(Tweet $tweet)
     {
-        $tweet = Tweet::find($id);
+        $this->authorize('delete', $tweet);
 
         $tweet->delete();
 
